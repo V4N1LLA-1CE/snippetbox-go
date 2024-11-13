@@ -21,7 +21,7 @@ func main() {
 	// initialise new router
 	// register homeHandler
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", homeHandler)
+	mux.HandleFunc("/{$}", homeHandler) // Restrict route to only match on "/"
 	mux.HandleFunc("/snippetbox/view", viewHandler)
 	mux.HandleFunc("/snippetbox/create", createHandler)
 
