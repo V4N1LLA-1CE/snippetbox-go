@@ -1,49 +1,24 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 )
 
-func homeHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Server", "Go")
-	w.Write([]byte("Hello from Snippetbox"))
-}
-
-func viewHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil || id < 1 {
-		http.NotFound(w, r)
-		return
-	}
-	msg := fmt.Sprintf("Display a specific snippet with ID %v\n", id)
-	w.Write([]byte(msg))
-}
-
-func createSnippetHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Display a form for creating a new snippet..."))
-}
-
-func createSnippetPostHandler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("Save a new snippet..."))
-}
-
 func main() {
-	// initialise new router
-	// register homeHandler
+	// initialise router
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /{$}", homeHandler) // Restrict route to only match on "/"
-	mux.HandleFunc("GET /snippetbox/view/{id}", viewHandler)
-	mux.HandleFunc("GET /snippetbox/create", createSnippetHandler)
-	mux.HandleFunc("POST /snippetbox/create", createSnippetPostHandler)
 
-	// log
-	log.Println("Starting server on :4000")
+	// create endpoints
+	mux.HandleFunc("GET /{$}", home)
+	mux.HandleFunc("GET /snippet/view/{id}", snippetView)
+	mux.HandleFunc("GET /snippet/create", snippetCreate)
+	mux.HandleFunc("POST /snippet/create", snippetCreatePost)
 
-	if err := http.ListenAndServe(":4000", mux); err != nil {
-		log.Fatal(err)
-	}
+	// logs and errors
+	log.Print("starting server on :4000")
+
+	// listen on localhost:4000
+	err := http.ListenAndServe(":4000", mux)
+	log.Fatal(err)
 }
