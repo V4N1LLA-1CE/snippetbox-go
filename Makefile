@@ -3,3 +3,5 @@ run:
 
 watch:
 	air
+
+.PHONY: watch run
