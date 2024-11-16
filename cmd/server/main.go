@@ -2,14 +2,20 @@ package main
 
 import (
 	"flag"
-	"log"
+	"log/slog"
 	"net/http"
+	"os"
 )
 
 func main() {
 	// run on the port given through -addr flag i.e. -addr=":9999"
 	addr := flag.String("addr", ":4000", "Http network address")
 	flag.Parse()
+
+	// use structured logger
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		AddSource: true,
+	}))
 
 	// initialise router
 	mux := http.NewServeMux()
@@ -30,9 +36,12 @@ func main() {
 	mux.HandleFunc("POST /snippet/create", snippetCreatePost)
 
 	// logs and errors
-	log.Printf("starting server on %v\n", *addr)
+	logger.Info("starting server...", "addr", *addr)
 
-	// listen on localhost:4000
+	// listen on localhost:addr
 	err := http.ListenAndServe(*addr, mux)
-	log.Fatal(err)
+
+	// log the error returned and terminate app
+	logger.Error(err.Error())
+	os.Exit(1)
 }

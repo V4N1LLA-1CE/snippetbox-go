@@ -2,6 +2,6 @@ run:
 	go run ./cmd/server/main.go
 
 watch:
-	air -- -addr=":8080"
+	air
 
 .PHONY: watch run
