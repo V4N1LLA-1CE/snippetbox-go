@@ -7,6 +7,10 @@ import (
 	"os"
 )
 
+type Application struct {
+	logger *slog.Logger
+}
+
 func main() {
 	// run on the port given through -addr flag i.e. -addr=":9999"
 	addr := flag.String("addr", ":4000", "Http network address")
@@ -16,6 +20,11 @@ func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		AddSource: true,
 	}))
+
+	// init instance of app struct that contains dependencies
+	app := &Application{
+		logger: logger,
+	}
 
 	// initialise router
 	mux := http.NewServeMux()
@@ -30,10 +39,10 @@ func main() {
 	mux.Handle("GET /static/", http.StripPrefix("/static", fs))
 
 	// create endpoints
-	mux.HandleFunc("GET /{$}", home)
-	mux.HandleFunc("GET /snippet/view/{id}", snippetView)
-	mux.HandleFunc("GET /snippet/create", snippetCreate)
-	mux.HandleFunc("POST /snippet/create", snippetCreatePost)
+	mux.HandleFunc("GET /{$}", app.home)
+	mux.HandleFunc("GET /snippet/view/{id}", app.snippetView)
+	mux.HandleFunc("GET /snippet/create", app.snippetCreate)
+	mux.HandleFunc("POST /snippet/create", app.snippetCreatePost)
 
 	// logs and errors
 	logger.Info("starting server...", "addr", *addr)
