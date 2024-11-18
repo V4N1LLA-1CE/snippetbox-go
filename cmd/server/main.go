@@ -10,12 +10,15 @@ import (
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/joho/godotenv"
+	"snippetbox.austinsofaer.dev/internal/models"
 )
 
 type Application struct {
-	logger *slog.Logger
+	logger   *slog.Logger
+	snippets *models.SnippetModel
 }
 
+// load env before app starts
 func init() {
 	if err := godotenv.Load(); err != nil {
 		log.Fatalf("cannot load .env variables: %v\n", err)
@@ -32,16 +35,17 @@ func main() {
 		AddSource: true,
 	}))
 
-	db, err := openPostgresDB(os.Getenv("POSTGRES_URL"))
+	conn, err := openPostgresDB(os.Getenv("POSTGRES_URL"))
 	if err != nil {
 		logger.Error(err.Error())
 		os.Exit(1)
 	}
-	defer db.Close()
+	defer conn.Close()
 
 	// init instance of app struct that contains dependencies
 	app := &Application{
-		logger: logger,
+		logger:   logger,
+		snippets: &models.SnippetModel{DB: conn},
 	}
 
 	// logs and errors
@@ -57,16 +61,16 @@ func main() {
 
 func openPostgresDB(dsn string) (*sql.DB, error) {
 	// initialise db pool
-	db, err := sql.Open("pgx", dsn)
+	conn, err := sql.Open("pgx", dsn)
 	if err != nil {
 		return nil, err
 	}
 
 	// establish connection
-	if err := db.Ping(); err != nil {
-		db.Close()
+	if err := conn.Ping(); err != nil {
+		conn.Close()
 		return nil, err
 	}
 
-	return db, nil
+	return conn, nil
 }
