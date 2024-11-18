@@ -1,10 +1,13 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"net/http"
 	"strconv"
+
+	"snippetbox.austinsofaer.dev/internal/models"
 )
 
 func (app *Application) home(w http.ResponseWriter, r *http.Request) {
@@ -27,6 +30,7 @@ func (app *Application) home(w http.ResponseWriter, r *http.Request) {
 	ts.ExecuteTemplate(w, "base", nil)
 	if err != nil {
 		app.serverError(w, r, err)
+		return
 	}
 }
 
@@ -36,7 +40,19 @@ func (app *Application) snippetView(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	fmt.Fprintf(w, "Display a specific snippet with ID %d... ", id)
+
+	s, err := app.snippets.Get(id)
+	if err != nil {
+		if errors.Is(err, models.ErrNoRecord) {
+			http.NotFound(w, r)
+		} else {
+			app.serverError(w, r, err)
+		}
+		return
+	}
+
+	// write snippet data as plain-text http response body
+	fmt.Fprintf(w, "%+v", s)
 }
 
 func (app *Application) snippetCreate(w http.ResponseWriter, r *http.Request) {
@@ -44,6 +60,7 @@ func (app *Application) snippetCreate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *Application) snippetCreatePost(w http.ResponseWriter, r *http.Request) {
+	// dummy data
 	title := "0 snail"
 	content := "0 snail\nClimb Mount Fuji,\nBut slowly, slowly!\n\n- Kobayashi Issa"
 	expires := 7
