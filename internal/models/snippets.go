@@ -15,6 +15,16 @@ type Snippet struct {
 	Expires time.Time
 }
 
+func (s Snippet) CreatedMelbourne() string {
+	melbourne, _ := time.LoadLocation("Australia/Melbourne")
+	return s.Created.In(melbourne).Format("2006-01-02 15:04:05 -0700 MST")
+}
+
+func (s Snippet) ExpiresMelbourne() string {
+	melbourne, _ := time.LoadLocation("Australia/Melbourne")
+	return s.Expires.In(melbourne).Format("2006-01-02 15:04:05 -0700 MST")
+}
+
 type SnippetModel struct {
 	DB *sql.DB
 }
